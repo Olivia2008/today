@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>HUI </title>
+<link rel="stylesheet" type="text/css" href="css/hui.css" />
+<style type="text/css">
+	*{padding: 0px; margin: 0px;}
+	#mapFooter{
+		background: #ffffff;
+		height: 64px;
+		width: 75%;
+		padding: 12px;
+		position: fixed;
+		left:0px;
+		bottom:0px;
+		z-index: 10;
+		line-height:20px;	
+	}
+	#goto{
+		background: url("img/location.png") no-repeat center center #51c332;
+		width: 58px; height: 58px;
+		background-size: 80% 80%;
+		position: fixed; right: 15px; bottom: 15px;
+		z-index: 11;
+		border-radius: 50%;
+	}
+</style>
+</head>
+<body>
+<!--//地图-->
+	<div id="map" style="width: 100%;"></div>
+	<!--//当前位置-->
+	<div id="mapFooter">
+		[当前位置]<br />
+		<span id="address"></span>
+	</div>
+	<!--//点击图标跳转至第三方系统-->
+	<div id="goto" onclick="goto();"></div>
+	
+<script type="text/javascript" src="js/hui.js" charset="UTF-8"></script>
+<script type="text/javascript">
+	var map, center, address;
+		function showMap () {
+			//位置信息未获取前的加载
+			plus.nativeUI.showWaiting()
+			//创建地图
+			map = new plus.maps.Map('map');
+			//设置缩放级别
+			map.setZoom(18);
+			//开启用户位置显示
+			map.showUserLocation(true);
+			//获取用户位置信息
+			map.getUserLocation(function (state,point) {
+				console.log(state+'--'+JSON.stringify(point));
+				center=new plus.maps.Point(point.longitude,point.latitude);
+				//设置当前用户位置的中心点
+				map.setCenter(center);
+				//在用户周围设置单车图标
+				//1 设置用户附近的单车中心点
+				var bike1=new plus.maps.Point(point.longitude+0.0001, point.latitude+0.0001);
+				//2 设置单车标记
+				var bike1Icon=new plus.maps.Marker(bike1);
+				//3 设置单车图标
+				bike1Icon.setIcon('img/bike.png');
+				//bike1Icon.setLabel('bike');
+				var bubble = new plus.maps.Bubble("打造最好的HTML5移动开发工具");
+        		bike1Icon.setBubble(bubble);
+				//4 向地图中添加图标
+				map.addOverlay(bike1Icon);
+				
+				//在用户周围设置单车图标2
+				//1 设置用户附近的单车中心点
+				var bike2=new plus.maps.Point(point.longitude+0.0003, point.latitude+0.0003);
+				//2 设置单车标记
+				var bike2Icon=new plus.maps.Marker(bike2);
+				//3 设置单车图标
+				bike2Icon.setIcon('img/bike.png');
+				//bike1Icon.setLabel('bike');
+				var bubble = new plus.maps.Bubble("打造最好的HTML5移动开发工具");
+        		bike2Icon.setBubble(bubble);
+				//4 向地图中添加图标
+				map.addOverlay(bike2Icon);
+			});
+			
+			//获取用户地址信息
+			plus.geolocation.getCurrentPosition(function(position){
+				//地址信息加载完后关闭加载图标
+				plus.nativeUI.closeWaiting();
+				//console.log(JSON.stringify(position.addresses));
+				address=position.addresses;
+				document.getElementById('address').innerHTML=address;
+			},function(){});
+		}
+		
+		
+		document.addEventListener('plusready', function() {
+			
+			//plus.screen.setBrightness( 0.7 );
+			//plus.device.setWakelock(true);
+			//console.log("所有plus api都应该在此事件发生后调用，否则会出现plus is undefined。"
+			var indexView = hui.getView('index.html');
+		    var nextPage = {
+		        pageId : 'mine.html', 
+		        callBack : function(){
+		            indexView.evalJS('hui("#hui-footer").find("a").removeClass("hui-footer-active"); hui("#nav-forum").addClass("hui-footer-active")');
+		        }
+		    };
+		    var prevPage = {
+		        pageId : 'news.html', 
+		        callBack : function(){
+		            indexView.evalJS('hui("#hui-footer").find("a").removeClass("hui-footer-active"); hui("#nav-home").addClass("hui-footer-active")');
+		        }
+		    };
+		    hui.drag(prevPage, nextPage);
+			
+			var winHeight=document.documentElement.clientHeight;
+			document.getElementById('map').style.height=(winHeight-88)+'px';
+			showMap();
+		});
+		//跳转到第三方导航系统
+		function goto(){
+    		plus.maps.openSysMap(center, address, center);
+		}
+</script>
+
+</body>
+</html>

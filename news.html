@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>HUI </title>
+<link rel="stylesheet" type="text/css" href="css/hui.css" />
+</head>
+<body>
+
+<div class="hui-wrap">
+	我是新闻页
+	<!--<div class="hui-media-list" id="newsList"></div>-->
+</div>
+
+
+<script type="text/javascript" src="js/hui.js" charset="UTF-8"></script>
+<script src="js/hui-refresh-load-more.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	
+	var page=1,cate=0,ws=null;
+	//禁用返回键
+	hui.Back = null;
+	
+	hui.plusReady(function(){
+		
+		/*//服务器数据交互
+		getNewList();
+		//子页面窗口下拉刷新
+		hui.refresh('#newsList',getNewList);
+		//上拉加载更多
+		hui.loadMore(loadMore);
+		//图片懒加载
+		hui.lazyLoad();*/
+		
+		
+		
+		//点击或滑动进入下一个页面
+		var indexView = hui.getView('index.html');
+	    var nextPage = {
+	        pageId : 'map.html',
+	        callBack : function(){
+	            indexView.evalJS('hui("#hui-footer").find("a").removeClass("hui-footer-active"); hui("#nav-news").addClass("hui-footer-active")');
+	        }
+	    }
+	    
+	    var prevPage = {
+		        pageId : 'index.html', 
+		        callBack : function(){
+		            indexView.evalJS('hui("#hui-footer").find("a").removeClass("hui-footer-active"); hui("#nav-home").addClass("hui-footer-active")');
+		        }
+		    };
+	    hui.drag(prevPage, nextPage);
+	    
+		
+	});
+	
+	/*//点击底部图标切换子窗口
+	function changeSubView(index){
+		for(var i = 0; i< subpages.length; i++){
+			var subpage = hui.getView(subpages[i][0]);
+			subpage.setStyle({'left' : ((index - i) * 100 )+'%'});
+		}
+		//选项状态激活
+		hui('#hui-footer a').removeClass('hui-footer-active');
+		hui('#hui-footer a').eq(index).addClass('hui-footer-active');
+	}
+	
+	//上拉加载更加
+	function loadMore () {
+		hui.get(
+			' http://hoa.hcoder.net/index.php?user=hcoder&pwd=hcoder&m=mediaList&page='+page+'&cate='+cate,
+			function(data){
+				//如果数据库的数据加载完了,注意data是个文本字符串，null加引号
+				if(data=='null'){
+					hui.endLoadMore(true, '已经到头了...');
+					return;//不再显示null
+				}
+				var html="";
+				var arrItem=data.split('--hcSplitor--');
+				for(var i=0; i<arrItem.length; i++){
+					var item=arrItem[i].split('--hcListSplitor--');
+					//console.log(arrItem[i]);
+					html += '<li>'+
+						'<a href="javascript:hui.open(\'Info.html\',{},true,{newsId:'+item[0]+'});">'+
+							'<div class="hui-media-list-img"><img src="img/lazyload.gif" lazySrc="'+item[1]+'" class="hui-lazy"/></div>'+
+							'<div class="hui-media-content">'+ 
+								'<h1>'+item[2]+'</h1>'+ 
+								
+							'</div>'+
+						'</a>'+
+					'</li>';
+				}
+				//上拉加载时，在第一页最后一个li后面追加创建的ul
+				var ul=document.createElement('ul');
+				ul.innerHTML=html;
+				//appendTo()在newsList的末尾追加ul
+				hui(ul).appendTo('#newsList');
+				hui.endLoadMore();
+				page++;
+				//懒加载图片
+				hui.lazyLoadNow();
+			},
+			function(e){
+				hui.endLoadMore();
+				hui.toast('数据加载失败');
+			}
+		)
+	}
+	
+	//图文列表与服务器进行交互,php输出的是文本
+	function getNewList(){
+		//下拉到头重新回到第一页
+		page=1;
+		
+		//将服务器中的新闻列表放到html中
+		var html="";
+		if(hui.refreshNumber < 1){hui.loading('加载中...');}
+		hui.get(
+			' http://hoa.hcoder.net/index.php?user=hcoder&pwd=hcoder&m=mediaList&page='+page+'&cate='+cate,
+			function(data){
+				hui.endRefresh();
+				//console.log(data);
+				var arrItem=data.split('--hcSplitor--');
+				for(var i=0; i<arrItem.length; i++){
+					var item=arrItem[i].split('--hcListSplitor--');
+					//console.log(arrItem[i]);
+					html += '<li>'+
+						'<a href="javascript:hui.open(\'Info.html\',{},true,{newsId:'+item[0]+'});">'+
+							'<div class="hui-media-list-img"><img src="img/lazyload.gif" lazySrc="'+item[1]+'" class="hui-lazy"/></div>'+
+							'<div class="hui-media-content">'+ 
+								'<h1>'+item[2]+'</h1>'+ 
+								
+							'</div>'+
+						'</a>'+
+					'</li>';
+				}
+				
+				//关闭loading
+				hui.loading('加载中...', true);
+				hui('#newsList').html('<ul>'+html+'</ul>');
+				//懒加载图片
+				hui.lazyLoadNow();
+				page++;
+				
+			},
+			function(e){
+				hui.endRefresh();
+				hui.toast('服务器连接失败');
+				hui.closeLoading();
+				
+			}
+		)
+	}*/
+</script>
+</body>
+</html>

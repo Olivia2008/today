@@ -1,0 +1,47 @@
+{
+  "index.html": {
+    "resources": [
+      "indexSub.html",
+      "css/hui.css",
+      "js/hui.js",
+      "css/fonts/iconfont.woff",
+      "css/fonts/iconfont.ttf",
+      "sub1.html",
+      "home.html",
+      "news.html"
+    ],
+    "refer": [
+      "indexSub.html",
+      "Info.html",
+      "index1.html",
+      "sub3.html",
+      "sub2.html",
+      "sub1.html",
+      "map.html",
+      "home.html",
+      "news.html",
+      "mine.html"
+    ]
+  },
+  "indexSub.html": {
+    "refer": [
+      "Info.html"
+    ]
+  },
+  "index1.html": {
+    "refer": [
+      "index.html"
+    ]
+  },
+  "news.html": {
+    "resources": [
+      "map.html"
+    ],
+    "refer": [
+      "indexSub.html",
+      "mine.html",
+      "map.html",
+      "Info.html"
+    ]
+  }
+}

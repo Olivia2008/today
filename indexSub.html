@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>HUI </title>
+<link rel="stylesheet" type="text/css" href="css/hui.css" />
+</head>
+<body>
+
+	<div class="hui-wrap" >
+		<div class="hui-media-list" id="newsList"></div>
+	</div>
+
+
+<script type="text/javascript" src="js/hui.js" charset="UTF-8"></script>
+<script src="js/hui-refresh-load-more.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	
+	var page=1,cate=0,ws=null, myappV='1.0';
+	/*var sonView=hui('#sonView');
+	sonView.hide();
+	var parentView=plus.webview.currentWebview().parent();
+	parentView.evalJS('if(huiStartBannerClose()){sonView.show();}');*/
+	//重新定义HUI的返回,点击返回时关闭了子窗口，处理此bug如下
+	hui.Back=function(){
+		var parentView=plus.webview.currentWebview().parent();
+		parentView.evalJS('hui.Back();');
+		
+	}
+	
+	hui.plusReady(function(){
+		//服务器数据交互
+		getNewList();
+		//子页面窗口下拉刷新
+		hui.refresh('#newsList',getNewList);
+		//hui.refresh('#newsList',getNewList);
+		/*ws=plus.webview.currentWebview();
+		ws.setPullToRefresh({support:true,
+			height:'50px',
+			range:'200px',
+			contentdown:{
+				caption:'下拉可以刷新'
+			},
+			contentover:{
+				caption:'释放立即刷新'
+			},
+			contentrefresh:{
+				caption:'正在刷新...'
+			}
+		},getNewList);
+		plus.nativeUI.toast('下拉可以刷新');
+		*/
+		//上拉加载更多
+		hui.loadMore(loadMore);
+		//图片懒加载
+		hui.lazyLoad();
+		//版本检查
+		checkVersion();
+		
+	});
+	
+	//版本,这种更新只适合安卓手机
+	function checkVersion(){
+		hui.getJSON(
+		'http://hoa.hcoder.net/index.php?user=hcoder&pwd=hcoder&m=ver',
+		function(data){
+			//console.log(JSON.stringify(data));
+			//查看服务器中的版本信息 {"v":"1.2","src":"http:\/\/hcoder.oss-cn-beijing.aliyuncs.com\/youdao.1.2.apk"}
+			if(myappV != data.v){
+				//提前下载
+        		var dtask;
+        		dtask = plus.downloader.createDownload(data.src, {method:"GET"},function(d, status){
+                    console.log(d);
+                    if(status == 200 ){
+                       	hui.alert('有新的版本需要更新','确定', function(){
+		        			 plus.runtime.install(d.filename);
+		        		});
+                    }else{hui.toast('新版本下载失败');}
+                });
+                dtask.start();
+			}
+		},
+		function(e){hui.toast('服务器连接失败！');}
+		)
+	}
+	//上拉加载更加
+	function loadMore () {
+		hui.get(
+			' http://hoa.hcoder.net/index.php?user=hcoder&pwd=hcoder&m=mediaList&page='+page+'&cate='+cate,
+			function(data){
+				//如果数据库的数据加载完了,注意data是个文本字符串，null加引号
+				if(data=='null'){
+					hui.endLoadMore(true, '已经到头了...');
+					return;//不再显示null
+				}
+				var html="";
+				var arrItem=data.split('--hcSplitor--');
+				for(var i=0; i<arrItem.length; i++){
+					var item=arrItem[i].split('--hcListSplitor--');
+					//console.log(arrItem[i]);
+					html += '<li>'+
+						'<a href="javascript:hui.open(\'Info.html\',{},true,{newsId:'+item[0]+'});">'+
+							'<div class="hui-media-list-img"><img src="img/lazyload.gif" lazySrc="'+item[1]+'" class="hui-lazy"/></div>'+
+							'<div class="hui-media-content">'+ 
+								'<h1>'+item[2]+'</h1>'+ 
+								
+							'</div>'+
+						'</a>'+
+					'</li>';
+				}
+				//上拉加载时，在第一页最后一个li后面追加创建的ul
+				var ul=document.createElement('ul');
+				ul.innerHTML=html;
+				//appendTo()在newsList的末尾追加ul
+				hui(ul).appendTo('#newsList');
+				hui.endLoadMore();
+				page++;
+				//懒加载图片
+				hui.lazyLoadNow();
+			},
+			function(e){
+				hui.endLoadMore();
+				hui.toast('数据加载失败');
+			}
+		)
+	}
+	//点击不同的列表，从服务器生成不同的数据
+	function changeCate(cateId){
+		//如果加载更多了，再点不同列表，应加载最新内容即第一页
+		page=1;
+		cate=cateId;
+		//切换列表后，返回顶部
+		hui.scrollTop(0);
+		//重置加载更多状态
+		hui.resetLoadMore();
+		getNewList();
+	}
+	//图文列表与服务器进行交互,php输出的是文本
+	function getNewList(){
+		//下拉到头重新回到第一页
+		page=1;
+		
+		//将服务器中的新闻列表放到html中
+		var html="";
+		if(hui.refreshNumber < 1){hui.loading('加载中...');}
+		hui.get(
+			' http://hoa.hcoder.net/index.php?user=hcoder&pwd=hcoder&m=mediaList&page='+page+'&cate='+cate,
+			function(data){
+				hui.endRefresh();
+				//console.log(data);
+				var arrItem=data.split('--hcSplitor--');
+				for(var i=0; i<arrItem.length; i++){
+					var item=arrItem[i].split('--hcListSplitor--');
+					//console.log(arrItem[i]);
+					html += '<li>'+
+						'<a href="javascript:hui.open(\'Info.html\',{},true,{newsId:'+item[0]+'});">'+
+							'<div class="hui-media-list-img"><img src="img/lazyload.gif" lazySrc="'+item[1]+'" class="hui-lazy"/></div>'+
+							'<div class="hui-media-content">'+ 
+								'<h1>'+item[2]+'</h1>'+ 
+								
+							'</div>'+
+						'</a>'+
+					'</li>';
+				}
+				
+				//关闭loading
+				hui.loading('加载中...', true);
+				hui('#newsList').html('<ul>'+html+'</ul>');
+				//懒加载图片
+				hui.lazyLoadNow();
+				page++;
+				
+			},
+			function(e){
+				hui.endRefresh();
+				hui.toast('服务器连接失败');
+				hui.closeLoading();
+				
+			}
+		)
+	}
+	
+</script>
+</body>
+</html>
